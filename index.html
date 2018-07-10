@@ -94,11 +94,9 @@
 	html, body {
         font-family: 'IBM Plex Serif', Georgia, 'Times New Roman', Times, serif;
         font-size: 15px;
-        position: relative;
-        float: left;
-        margin: 0 0 0 5%;
+        margin: 0 0 0 0;
         padding: 0;
-        width: 100vw;
+        width: 100%;
         max-width: 1200px;
         user-select: none;
         margin-bottom: 10em;
@@ -124,11 +122,19 @@
     .full {
         position: relative;
         box-sizing: border-box;
-        width: 100%;
+        width: 95%;
         margin: 2em 1em;
         padding: 0;
         flex-shrink: 0;
         flex-basis: 100%;
+    }
+
+    #textures_div {
+        position: relative;
+        float: left;
+        box-sizing: border-box;
+        width: 95%;
+        margin: 2em 1em;
     }
 
     .texture {
@@ -136,7 +142,7 @@
         float: left;
         box-sizing: border-box;
         width: 100%;
-        margin: 2em 0 2em 0;
+        margin: 0;
         padding: 0.25em 0 0 0;
     }
 
@@ -144,9 +150,14 @@
 	and (min-width: 800px) 
 	and (-webkit-min-device-pixel-ratio: 1) {
 
+        body {
+            margin-left: 10%;
+        }
+
 		.texture {
             width: 40%;
             min-width: 400px;
+            margin: 2em 5% 2em 0;
         }
 	}
 
