@@ -131,6 +131,25 @@
         flex-basis: 100%;
     }
 
+    .texture {
+        position: relative;
+        float: left;
+        box-sizing: border-box;
+        width: 100%;
+        margin: 2em 0 2em 0;
+        padding: 0.25em 0 0 0;
+    }
+
+    @media only screen 
+	and (min-width: 800px) 
+	and (-webkit-min-device-pixel-ratio: 1) {
+
+		.texture {
+            width: 40%;
+            min-width: 400px;
+        }
+	}
+
     #page_heading {
         margin-top: 5em;
         margin-bottom: 3em;
@@ -139,16 +158,6 @@
     #page_heading p {
         width: 40%;
         min-width: 400px;
-    }
-
-    .texture {
-        position: relative;
-        float: left;
-        box-sizing: border-box;
-        width: 40%;
-        min-width: 400px;
-        margin: 2em 5% 2em 0;
-        padding: 0.25em 0 0 0;
     }
 
     .texture h2 {
@@ -208,14 +217,14 @@
     setInterval(animate, frame_interval);
 
     var texture_selected = false;
-    $(document).on('mousemove', function(e) {
+    $(document).on('mousemove touchmove', function(e) {
         for (i in texture_obj) {
             if (texture_obj[i].initialized) {
                 texture_obj[i].getCursor(e.pageX, e.pageY);
             }
         }
     });
-    $(document).on('mousedown', function(e) {
+    $(document).on('mousedown touchstart', function(e) {
         if (!texture_selected) {
             for (i in texture_obj) {
                 if (texture_obj[i].hover) {
@@ -225,7 +234,7 @@
             }
         }
     });
-    $(document).on('mouseup', function(e) {
+    $(document).on('mouseup touchend', function(e) {
         if (texture_selected) {
             for (i in texture_obj) {
                 texture_obj[i].selected = false;
