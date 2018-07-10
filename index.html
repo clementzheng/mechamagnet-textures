@@ -131,6 +131,25 @@
         flex-basis: 100%;
     }
 
+    .texture {
+        position: relative;
+        float: left;
+        box-sizing: border-box;
+        width: 100%;
+        margin: 2em 0 2em 0;
+        padding: 0.25em 0 0 0;
+    }
+
+    @media only screen 
+	and (min-width: 800px) 
+	and (-webkit-min-device-pixel-ratio: 1) {
+
+		.texture {
+            width: 40%;
+            min-width: 400px;
+        }
+	}
+
     #page_heading {
         margin-top: 5em;
         margin-bottom: 3em;
@@ -139,16 +158,6 @@
     #page_heading p {
         width: 40%;
         min-width: 400px;
-    }
-
-    .texture {
-        position: relative;
-        float: left;
-        box-sizing: border-box;
-        width: 40%;
-        min-width: 400px;
-        margin: 2em 5% 2em 0;
-        padding: 0.25em 0 0 0;
     }
 
     .texture h2 {
