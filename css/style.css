@@ -55,7 +55,11 @@ p {
 }
 
 @media only screen 
+<<<<<<< HEAD
 and (min-width: 800px)  {
+=======
+and (min-width: 800px) {
+>>>>>>> refs/remotes/origin/master
 
     body {
         margin-left: 10%;
