@@ -1,8 +1,27 @@
 var height_ratio = 0.5;
 var frame_interval = 25;
 
+var show_fd_chart = true;
+var show_static_magnets = true;
+
 //initialize texture objects
 function init() {
+    $('#fd_chart_checkbox').change( function() {
+        if (this.checked) {
+            show_fd_chart = true;
+        } else {
+            show_fd_chart = false;
+        }
+    });
+
+    $('#static_magnets_checkbox').on('change', function() {
+        if (this.checked) {
+            show_static_magnets = true;
+        } else {
+            show_static_magnets = false;
+        }
+    });
+
     for (i in texture_obj) {
         var w = $('#'+texture_obj[i].name+' .interaction_box').width();
         $('#'+texture_obj[i].name+' .interaction_box').attr('height', w*height_ratio+'px');
@@ -11,6 +30,9 @@ function init() {
         texture_obj[i].canvas = document.getElementById(texture_obj[i].name+'_canvas');
         texture_obj[i].ctx = texture_obj[i].canvas.getContext('2d');
         texture_obj[i].init();
+        texture_obj[i].img = new Image();
+        texture_obj[i].img.onload = texture_obj[i].calcFD;
+        texture_obj[i].img.src = texture_obj[i].src;
     }
 }
 
@@ -28,7 +50,20 @@ function animate() {
     for (i in texture_obj) {
         if (texture_obj[i].initialized) {
             texture_obj[i].update();
-            texture_obj[i].display(path_color, path_width, moving_magnet_color, moving_magnet_color_active, moving_magnet_path_width, magnet_arrow_size, chart_color, static_magnet_fill, static_magnet_stroke);
+            texture_obj[i].display(
+                path_color, 
+                path_width, 
+                moving_magnet_color, 
+                moving_magnet_color_active, 
+                moving_magnet_path_width, 
+                magnet_arrow_size, chart_color, 
+                static_magnet_fill, 
+                static_magnet_stroke, 
+                show_fd_chart, 
+                show_static_magnets
+            );
+        } else {
+            texture_obj[i].calcFD();
         }
     }
 }
@@ -36,14 +71,14 @@ setInterval(animate, frame_interval);
 
 //mouse events
 var texture_selected = false;
-$(document).on('mousemove touchmove', function(e) {
+$(document).on('mousemove', function(e) {
     for (i in texture_obj) {
         if (texture_obj[i].initialized) {
             texture_obj[i].getCursor(e.pageX, e.pageY);
         }
     }
 });
-$(document).on('mousedown touchstart', function(e) {
+$(document).on('mousedown', function(e) {
     if (!texture_selected) {
         for (i in texture_obj) {
             if (texture_obj[i].hover) {
@@ -53,7 +88,7 @@ $(document).on('mousedown touchstart', function(e) {
         }
     }
 });
-$(document).on('mouseup touchend', function(e) {
+$(document).on('mouseup', function(e) {
     if (texture_selected) {
         for (i in texture_obj) {
             texture_obj[i].selected = false;
@@ -70,6 +105,7 @@ $(window).on('resize', function() {
     }
 });
 
+
 //texture objects
 var attract_center_img_src = "data:image/png;base64,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";
 var repel_center_img_src = "data:image/png;base64,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";
@@ -78,6 +114,7 @@ var repel_step_img_src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAADI
 //var attract_end_img_src = "data:image/png;base64,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";
 var attract_end_img_src = "data:image/png;base64,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";
 var repel_end_img_src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAADICAIAAAC8pWlAAAAACXBIWXMAAAsSAAALEgHS3X78AAAHVUlEQVR4Ae3d7XXaSAOGYfwe/x+lApEKRqlASgW4A9EBdAAdQAehg5AO5AqiVBBcQUgF7LHHL3YQBiQeoZF0Xz+ye7S7Z2PgznxISHe73W4A4Dr/4/UDrkdIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgMA9LyK8st1u8zwfDAZJkrTonbkrHAFKsNYGQeD+/SAIoig6+G+1PRz9X/iAkPAhF8n+szt84fOnuUF3cRw/Pj729ufHYDCI43g/dLz/FZe734/L6ANjTPRiOBy6v+EDIHEfRdGPHz868JPgKGtt9A7Z1OTezXrRGWEYRlGUJIn7lTf2NgipC6y1+3J4Qxtx9+fPn0+fPvXwJ2+7MAyT/yOext3tdrsgCP7+/dvzF6ItrLXj8diNP31/LXzyfGVDFEXsgHtuNBo9vGC3wE+E5DX6aYt7d6K67y+DZ9z8bTwe89a0xfMaKcuyr1+/9v2V8IAxxvXD+qd17t01VH1/GZpmrZ1Op+PxuN8vQ4s9j0jPf7nj6tVmpGnqduH6+MN3ye6Fu2wRN2OMSdP09+/fO3TC6zdkmd3djDFmNpttNpvVasXL3hmvIbG6vYF9QvP5nO24jnn9qjkh1S1N0+VyST9d9brZsN1uueKuJqPRaLlcMovrtteQ3DLp6emp76+HVBiGq9WKHbk+eLsdF39kCu2XQ1TUE28h8ZarxHGc5/l8Pu/Gj4NLvIXEfsP1jDGLxSLLMob3vnm7QSTv/ZXiOObUUG+9bTZwodA1FovFdDpt7+8fV/rn3t9cKFRBGIY/f/6kop77JySWSWWNRqM8z3ndQEjVzWaz9XrNxQq9Nzh8GgUhXcgYs1qtHh4eWvG7xQ38s9nAfsMljDFZlvGHDt47fNAY+w2nWWs3mw0V4cBhSHxETrDWZlnGoghFhyFxodBH4jimInyEEekiaZpSEU443Gxwt7njDsbvpWm6Wq0Kh4E3R55qzuzuPWstFeGsIyExu9tzuwuFw8ChIyExIjns0eFyR9ZInJZ1Z13zPOc7EbjQkRHJ/WFcONYj7toFKsLljofU89ndcrlkoYhSCOnQZDLhZvYo6/gaqbe3uXOXLxQOA2ccD6mft7kzxmw2G7bpUMHxqV0/Z3d8Sw+VEdKr2WzGCTRU9uHUbrPZfP78uXC4m1ga4UofhtSfZRJLI1zvw6ldf2Z3LI1wvVMh9eHmHiyNIHFqatf5s0ksjaByakQKgqDDF90ZY9brdeEwUMWpkLq9TGJpBKEzIXV1mcTSCFqn1khO927hwNIIcmdGpO7N7lgaoQ7nQ+rY7I6lEerQrxGJpRFqcn6N5O4r9OvXr8LhlrHW5nnOBwl1OD8idWNQYmmEWl0UUge+es1jklGri0KKoigMw8Lh1phMJjwUDLW6KKRW791Za+fzeeEwoNTxkNwzKtnvRt0uDSlJEmNM4bDv5vM5d6jDDVwaUhsHpdFoNJ1OC4cBvYvOIzl5nn/58qVw2FNhGOZ5zqQOt1FiRGrX3h1LI9xSiZBaNLvjUiDcWImpXVtmd3xLArdXLiT/r7vjuUZoRLmpnf+XC3EpEBpRekTy+dZCPH4cTSk9IgVBkKZp4XDzrLXL5ZIPEhpROiRvZ3fsd6NBVUJKksS3E0qLxYJLgdCgKiG5a9gKxxrDpUBoXOnNBme73Q6HQx9u08WzJOCDiiNSEASeDALcFQg+qDgiebIPPpvN+NIefFBxRPJhHzyOYyqCJ6qPSM0+HpOlEbxSfURyz8ZsalBiaQSvXBWS2we//VfQ+ZYEfHNtSMPh8MbbdyyN4KGr1kjOLc8p8QVy+OnaEclt393malF322EqgocEIbnLWOM4LhwWWy6XXFAHPwmmdk7dW+GTyYRvScBbmhHJ7TosFovCYY00TakIPpONSE6SJI+Pj4XDV7HWZlnG0gg+E4e03W6jKHp6eir8k4qoCK0gm9o5QRCs12vVKVoqQluIQ3L365LcgYSK0CL6kNwNWb99+1Y4XAIVoV3Ea6T38jxPkqTCFQ/cVQutU8uI5ERRlOd5qRO1xpjv379TEVqnxpDcyaUsyxaLxdntB2PMbDbbbDY87BVtVOPU7sBqtVqv11mWvZ/shWEYRdHDC1ZEaKnBYPAf+TQBLf+gkRUAAAAASUVORK5CYII=";
+
 var texture_obj = [
     new Texture(
         "attract_center", //name
@@ -178,11 +215,11 @@ var texture_obj = [
 
 
 //texture class
-function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, forcemult, dampening, mass, magnetwidth, magnetheight, staticmag) {
+function Texture(name, src, startpos, pathstart, pathend, pathlength, maxforce, forcemult, dampening, mass, magnetwidth, magnetheight, staticmag) {
     this.initialized = false;
     
     this.name = name;
-    this.url = url;
+    this.src = src;
     this.img;
     this.canvas;
     this.ctx;
@@ -216,12 +253,8 @@ function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, 
     this.static_mag = staticmag;
     
     this.init = function() {
-        this.img = new Image();
-        this.img.src = this.url;
         this.ctx.translate(0.5, 0.5);
         this.getDimensions();
-        this.calcFD();
-        this.initialized = true;
     }
 
     //get canvas position and size, calibrate pixels to real world values
@@ -261,23 +294,26 @@ function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, 
 
     //calculate force displacement values by analyzing image
     this.calcFD = function() {
-        this.ctx.drawImage(this.img, 0, 0, this.w, this.h);
-        var imgdata = this.ctx.getImageData(0, 0, this.w, this.h);
-        for (var i=0; i<this.w; i++) {
-            this.fd[i] = {'x': i/this.w*this.path_length, 'y': 0};
-            for (var j=0; j<this.h/2; j++) {
-                var indexJ1 = j*this.w*4 + i*4;
-                var indexJ2 = (this.h-j-1)*this.w*4 + i*4;
-                if (imgdata.data[indexJ1] < 10 && imgdata.data[indexJ1+3] > 0) {
-                    this.fd[i].y = (this.h/2 - j) / (this.h/2) * this.max_force;
-                    break;
-                } else if (imgdata.data[indexJ2] < 10  && imgdata.data[indexJ2+3] > 0) {
-                    this.fd[i].y = (-this.h/2 + j) / (this.h/2) * this.max_force;
-                    break;
+        if (this.img != undefined) {
+            this.ctx.drawImage(this.img, 0, 0, this.w, this.h);
+            var imgdata = this.ctx.getImageData(0, 0, this.w, this.h);
+            for (var i=0; i<this.w; i++) {
+                this.fd[i] = {'x': i/this.w*this.path_length, 'y': 0};
+                for (var j=0; j<this.h/2; j++) {
+                    var indexJ1 = j*this.w*4 + i*4;
+                    var indexJ2 = (this.h-j-1)*this.w*4 + i*4;
+                    if (imgdata.data[indexJ1] < 10 && imgdata.data[indexJ1+3] > 0) {
+                        this.fd[i].y = (this.h/2 - j) / (this.h/2) * this.max_force;
+                        break;
+                    } else if (imgdata.data[indexJ2] < 10  && imgdata.data[indexJ2+3] > 0) {
+                        this.fd[i].y = (-this.h/2 + j) / (this.h/2) * this.max_force;
+                        break;
+                    }
                 }
             }
+            this.clearCanvas();
+            this.initialized = true;
         }
-        this.clearCanvas();
     }
 
     //calculate and update position 
@@ -300,7 +336,7 @@ function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, 
     }
 
     //draw function
-    this.display = function(pcol, pwidth, mmcol, mmcol_active, mmwidth, mmarrow, ccol, smfill, smstroke) {
+    this.display = function(pcol, pwidth, mmcol, mmcol_active, mmwidth, mmarrow, ccol, smfill, smstroke, show_chart, show_static) {
         
         this.clearCanvas();
         
@@ -310,16 +346,18 @@ function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, 
         var rendered_magnet_width = Math.round(this.magnet_width*this.pixel_per_mm);
         var rendered_magnet_height = Math.round(this.magnet_height*this.pixel_per_mm);
 
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = ccol;
-        this.ctx.lineWidth = 1;
-        for (var i=0; i<rendered_path_length; i=i+3) {
-            var fdpos = i/this.pixel_per_mm;
-            var force_at_location = this.returnForce(fdpos);
-            this.ctx.moveTo(rendered_start.x + i, rendered_start.y);
-            this.ctx.lineTo(rendered_start.x + i, rendered_start.y - force_at_location*this.pixel_per_newton);
+        if (show_chart) {
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = ccol;
+            this.ctx.lineWidth = 1;
+            for (var i=0; i<rendered_path_length; i=i+3) {
+                var fdpos = i/this.pixel_per_mm;
+                var force_at_location = this.returnForce(fdpos);
+                this.ctx.moveTo(rendered_start.x + i, rendered_start.y);
+                this.ctx.lineTo(rendered_start.x + i, rendered_start.y - force_at_location*this.pixel_per_newton);
+            }
+            this.ctx.stroke();
         }
-        this.ctx.stroke();
 
         this.ctx.beginPath();
         this.ctx.fillStyle = mmcol;
@@ -345,37 +383,39 @@ function Texture(name, url, startpos, pathstart, pathend, pathlength, maxforce, 
         this.ctx.lineTo(rendered_pos.x - rendered_magnet_height*mmarrow*0.125, rendered_pos.y - rendered_magnet_height/2);
         this.ctx.stroke();
 
-        for (i in this.static_mag) {
-            var rendered_sm_pos = {'x': Math.round(this.static_mag[i].pos*rendered_path_length + rendered_start.x), 'y': rendered_start.y};
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = smstroke;
-            this.ctx.lineWidth = mmwidth;
-            this.ctx.fillStyle = smfill;
-            this.ctx.setLineDash([3]);
-            this.ctx.rect(rendered_sm_pos.x - rendered_magnet_width/2, rendered_pos.y, rendered_magnet_width, rendered_magnet_height);
-            this.ctx.fill();
-            this.ctx.stroke();
-            this.ctx.setLineDash([]);
+        if (show_static) {
+            for (i in this.static_mag) {
+                var rendered_sm_pos = {'x': Math.round(this.static_mag[i].pos*rendered_path_length + rendered_start.x), 'y': rendered_start.y};
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = smstroke;
+                this.ctx.lineWidth = mmwidth;
+                this.ctx.fillStyle = smfill;
+                this.ctx.setLineDash([3]);
+                this.ctx.rect(rendered_sm_pos.x - rendered_magnet_width/2, rendered_pos.y, rendered_magnet_width, rendered_magnet_height);
+                this.ctx.fill();
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
 
-            this.ctx.beginPath();
-            this.ctx.lineWidth = 1;
-            this.ctx.fillStyle = smstroke;
-            this.ctx.moveTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5+mmarrow/2));
-            this.ctx.lineTo(rendered_sm_pos.x - rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
-            this.ctx.lineTo(rendered_sm_pos.x + rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
-            this.ctx.lineTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5+mmarrow/2));
-            if (!this.static_mag[i].attract) {
-                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.lineWidth = 1;
+                this.ctx.fillStyle = smstroke;
+                this.ctx.moveTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5+mmarrow/2));
+                this.ctx.lineTo(rendered_sm_pos.x - rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
+                this.ctx.lineTo(rendered_sm_pos.x + rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
+                this.ctx.lineTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5+mmarrow/2));
+                if (!this.static_mag[i].attract) {
+                    this.ctx.fill();
+                }
+                this.ctx.stroke();
+                this.ctx.beginPath();
+                this.ctx.moveTo(rendered_sm_pos.x + rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
+                this.ctx.lineTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5-mmarrow/2));
+                this.ctx.lineTo(rendered_sm_pos.x - rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
+                if (this.static_mag[i].attract) {
+                    this.ctx.fill();
+                }
+                this.ctx.stroke();
             }
-            this.ctx.stroke();
-            this.ctx.beginPath();
-            this.ctx.moveTo(rendered_sm_pos.x + rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
-            this.ctx.lineTo(rendered_sm_pos.x, rendered_sm_pos.y + rendered_magnet_height*(0.5-mmarrow/2));
-            this.ctx.lineTo(rendered_sm_pos.x - rendered_magnet_height*mmarrow*0.125, rendered_sm_pos.y + rendered_magnet_height/2);
-            if (this.static_mag[i].attract) {
-                this.ctx.fill();
-            }
-            this.ctx.stroke();
         }
 
         this.ctx.beginPath();

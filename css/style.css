@@ -78,6 +78,18 @@ and (min-width: 800px) {
     min-width: 400px;
 }
 
+#filter_menu {
+    position: relative;
+    float: left;
+    width: 100%;
+    margin: 2em 0;
+    line-height: 2em;
+}
+
+#filter_menu input {
+    margin-right: 1em;
+}
+
 .texture h2 {
     z-index: 99;
 }
