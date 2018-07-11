@@ -1,0 +1,97 @@
+html, body {
+    font-family: 'IBM Plex Serif', Georgia, 'Times New Roman', Times, serif;
+    font-size: 15px;
+    margin: 0 0 0 0;
+    padding: 0;
+    width: 100%;
+    max-width: 1200px;
+    user-select: none;
+    margin-bottom: 10em;
+}
+
+h1 {
+    position: relative;
+    font-size: 2em;
+    font-weight: 600;
+}
+
+h2 {
+    position: relative;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+p {
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.full {
+    position: relative;
+    box-sizing: border-box;
+    width: 95%;
+    margin: 2em 1em;
+    padding: 0;
+    flex-shrink: 0;
+    flex-basis: 100%;
+}
+
+#textures_div {
+    position: relative;
+    float: left;
+    box-sizing: border-box;
+    width: 95%;
+    margin: 2em 1em;
+}
+
+.texture {
+    position: relative;
+    float: left;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 0.25em 0 0 0;
+}
+
+@media only screen 
+and (min-width: 800px) 
+and (-webkit-min-device-pixel-ratio: 1) {
+
+    body {
+        margin-left: 10%;
+    }
+
+    .texture {
+        width: 40%;
+        min-width: 400px;
+        margin: 2em 5% 2em 0;
+    }
+}
+
+#page_heading {
+    margin-top: 5em;
+    margin-bottom: 3em;
+}
+
+#page_heading p {
+    width: 40%;
+    min-width: 400px;
+}
+
+.texture h2 {
+    z-index: 99;
+}
+
+.interaction_box {
+    position: relative;
+    float: left;
+    width: 100%;
+    margin: 0 0 0 0;
+    z-index: -1;
+}
+
+canvas {
+    background: url(
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAALUlEQVQoU2P89evXfwYiAOMgUnjw4EEGe3t7DFdjdSMbGxuG+GDyDLawB3kQALkGMJBhjpX5AAAAAElFTkSuQmCC"
+        ) repeat;
+}
